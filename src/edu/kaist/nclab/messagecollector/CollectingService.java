@@ -1,5 +1,6 @@
 package edu.kaist.nclab.messagecollector;
 
+import edu.kaist.nclab.messagecollector.MyLocation.LocationResult;
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.app.ActivityManager;
@@ -8,6 +9,7 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.location.Location;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.widget.Toast;
@@ -33,11 +35,20 @@ public class CollectingService extends AccessibilityService {
 				+ " package: " + event.getPackageName());
 		if(isKakaoTalkMessage(event)) {
 			// Then collect the following data
-			long messageTime = event.getEventTime();
-			String messageContent = event.getText().toString();
-			String foregroundApp = getForegroundApplicationName();
-			// And log them to LogCat
-			Log.v(TAG, "Message: " + messageContent + " at: " + messageTime + " while seeing "+foregroundApp);
+			final long messageTime = event.getEventTime();
+			final String messageContent = event.getText().toString();
+			final String foregroundApp = getForegroundApplicationName();
+			LocationResult locationResult = new LocationResult(){
+				@Override
+				public void gotLocation(Location location) {
+					// Got the location
+					String userLocation = location.toString();
+					// And log them to LogCat
+					Log.v(TAG, "Message: " + messageContent + " at: " + messageTime + " while seeing "+foregroundApp+ " location: "+userLocation);
+				}
+			};
+			MyLocation myLocation = new MyLocation();
+			myLocation.getLocation(this, locationResult);
 
 		}
 	}
